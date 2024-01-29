@@ -2,13 +2,12 @@
 <html>
 
 <head>
-	<title>A-Frame - Image Textures</title>
+	<title>COCAS</title>
 	<script src="js/aframe-master-v1.3.0.min.js"></script>
+  <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
 </head>
 
 <body>
- 
-    
   <a-scene stats>
     <a-assets>
       <a-mixin
@@ -90,6 +89,11 @@
     </a-assets>
 
     <a-sky src="images/stars.jpg"></a-sky>
+
+    <!-- <a-sound src="Interstellar Official Soundtrack  Cornfield Chase  Hans Zimmer  WaterTower.mp3" loop autoplay></a-sound> -->
+    
+    <a-entity id="sound"
+          position="0 0 0" sound="src: url(background_music.mp3); autoplay: true; loop: true; "></a-entity>
 
     <a-camera position="0 1.6 4"></a-camera>
 
