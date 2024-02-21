@@ -5,9 +5,127 @@
 	<title>COCAS</title>
 	<script src="js/aframe-master-v1.3.0.min.js"></script>
   <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
+	<script src="js/aframe-environment-component.min.js"></script>
+	<script src="js/extended-wasd-controls.js"></script>
+	<script src="js/joystick.js"></script>
+  <style>
+
+    body
+    {
+      /* disable long press in iOS? */
+      -webkit-touch-callout: none;
+    }
+    
+    .mainUI
+    {
+      border: 0px solid pink; 
+      position: fixed; 
+      top: 0px;  
+      width:99%; 
+      height:99%; 
+      z-index: 1; 
+      pointer-events: none; /* allow click-through in transparent areas */
+    }
+    
+    .regionUI
+    {
+      border: 0px solid yellow;
+      position: absolute; 
+      display: flex;
+      flex-direction: row;
+      pointer-events: none;
+    }
+    
+    .buttonUI
+    {
+      border: 0px solid lime;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      pointer-events: auto;	
+      filter: drop-shadow(0px 0px 20px white);
+    }
+    
+    .skyColor
+    {
+      filter: hue-rotate(240deg) saturate(100%) brightness(100%) drop-shadow(0px 0px 20px white);
+    }
+    
+    .baseColor
+    {
+      filter: hue-rotate(24deg) saturate(68%) brightness(100%) drop-shadow(0px 0px 20px white);
+    }
+    
+    .grayColor
+    {
+      filter: hue-rotate(0deg) saturate(0%) brightness(100%) drop-shadow(0px 0px 20px white);
+    }
+    
+    </style>
 </head>
 
 <body>
+
+  <div class="mainUI" id="uiDiv" oncontextmenu="return false;">
+
+    <!-- top-left -->
+    <div class="regionUI skyColor" style="top: 10px; left: 10px;" oncontextmenu="return false;">
+    </div>
+  
+    <!-- top-right -->
+    <div class="regionUI" style="top: 10px; right: 10px;">
+    </div>
+  
+    <!-- bottom-left -->
+    <div class="regionUI" style="bottom: 10px; left: 10px;">
+      <div class="buttonUI" style="width: 128px;  opacity:0.80;">
+        <img src="images/joystick-base.png"/>
+        <div id="stick1" style="position: absolute; left:32px; top:32px;">
+        <img src="images/joystick-red.png"/>		
+        </div>
+      </div>
+    </div>
+  
+    <!-- bottom-right -->
+    <div class="regionUI" style="bottom: 10px; right: 10px;">
+      <div class="buttonUI" style="width: 128px; opacity:0.80;">
+        <img src="images/joystick-base.png"/>
+        <div id="stick2" style="position: absolute; left:32px; top:32px;">
+        <img src="images/joystick-blue.png"/>		
+        </div>
+      </div>
+    </div>
+  
+  </div>
+  
+  <script>
+  
+    // need to run javascript code after a-scene entities and components are loaded
+    AFRAME.registerComponent('screen-controls', 
+    {
+      init: function () 
+      {
+          this.component = document.getElementById("camera").components["extended-wasd-controls"];
+          this.joystick1 = new Joystick("stick1", 64, 8);
+          this.joystick2 = new Joystick("stick2", 64, 8);
+        },
+  
+        tick: function(time, deltaTime)
+        {
+          // console.log( joystick1.value )
+          // console.log( this.component.movePercent )
+          this.component.movePercent.x   =  this.joystick1.value.x;
+          this.component.movePercent.z   = -this.joystick1.value.y;
+          this.component.rotatePercent.x = -this.joystick2.value.y;
+          this.component.rotatePercent.y = -this.joystick2.value.x;
+          
+          
+        }
+    });
+  
+  
+  </script>
+  
   <a-scene stats>
     <a-assets>
       <a-mixin
@@ -49,12 +167,6 @@
                            segments: 100; thetaStart: 0; thetaLength: 360";
         material="src: url(images/ecell.png)"
       ></a-mixin>
-
-      <a-mixin
-        id="circle-birithik"
-        geometry="primitive: plane; width: 5; height: 5"
-        material="src: url(images/birithik.jpeg)"
-      ></a-mixin>
       
       <a-mixin
         id="column"
@@ -65,7 +177,7 @@
       <a-mixin
         id="column-bottom"
         geometry="primitive: box; depth: 1;
-                                              height: .1; width: 1;"
+                    height: .1; width: 1;"
         material="color: #FFF"
         position="0 .1 0"
       ></a-mixin>
@@ -88,6 +200,8 @@
       <img id="carpet" src= "images/carpet.jpg" />
       <img id="floor" src= "images/marble.jpg" />
       <img id="sky" src= "images/stars.jpg" />
+      <img id ="b" src = "images/logo1.png"/>
+      <img id = "birithik" src  = "images/birithik_nobg.png"/>
       
 
 
@@ -101,7 +215,7 @@
     <a-entity id="sound"
           position="0 0 0" sound="src: url(background_music.mp3); autoplay: true; loop: true; "></a-entity>
 
-    <a-camera position="0 1.6 4"></a-camera>
+    <a-camera position="0 10 0"></a-camera>
 
     <a-entity light="type: ambient; color: #444"></a-entity>
     <a-entity
@@ -122,6 +236,17 @@
                           repeat: 3 40; roughness: 1"
       position="0 .2 0"
     ></a-entity>
+
+    <a-entity position = "0 1 0">
+      <a-image src="#b" width="3" height="3" rotation="90 -90"></a-image>
+
+  </a-entity>
+
+    <a-entity position="0 1 -5">
+      <a-image src="#birithik" width="3" height="3"></a-image>
+    </a-entity>
+
+    <!-- <a-plane src rotation="-90 0 0" width="10" height="10"></a-plane> -->
 
     <!-- <a-entity position="-2.5 0 1">
       <a-entity mixin="column">
@@ -160,15 +285,6 @@
         <a-entity mixin="object-on-column color doubleside circle-nirmaan spin"></a-entity>
       </a-entity>
       <a-entity mixin="column-bottom"></a-entity>
-    </a-entity>
-
-    <a-entity position="0 0 -5">
-      <!-- <a-entity mixin="column"> -->
-        <a-entity mixin="column-light"></a-entity>
-        <a-entity mixin="object-on-column color doubleside circle-birithik "></a-entity>
-        <a-entity mixin="object-on-column color doubleside circle-birithik "></a-entity>
-      </a-entity>
-      <!-- <a-entity mixin="column-bottom"></a-entity> -->
     </a-entity>
 
     <a-entity position="-4.33 0 -2.5">
