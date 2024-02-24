@@ -3,33 +3,27 @@
 
 <head>
 	<title>COCAS</title>
-	<script src="js/aframe-master-v1.3.0.min.js"></script>
-  <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
-	<script src="js/aframe-environment-component.min.js"></script>
-	<script src="js/extended-wasd-controls.js"></script>
-	<script src="js/joystick.js"></script>
-  <style>
+    <script src="js/aframe-master.1.0.4.min.js"></script>
+    <!-- <script src="js/aframe-master-v1.3.0.min.js"></script> -->
+    <script src="js/aframe-environment-component.min-old.js"></script>
+    <script src="js/aframe-spe-particles-component.js"></script>
+    <script src="js/aframe-spritesheet-animation.js"></script>
 
-    body
-    {
-      /* disable long press in iOS? */
-      -webkit-touch-callout: none;
-    }
-    
+  <style>
     .mainUI
     {
-      border: 0px solid pink; 
       position: fixed; 
       top: 0px;  
-      width:99%; 
-      height:99%; 
+      width:100%; height:100%; 
       z-index: 1; 
       pointer-events: none; /* allow click-through in transparent areas */
+      display: flex;
+      align-items: center;
+        justify-content: center;
     }
     
     .regionUI
     {
-      border: 0px solid yellow;
       position: absolute; 
       display: flex;
       flex-direction: row;
@@ -38,95 +32,313 @@
     
     .buttonUI
     {
-      border: 0px solid lime;
       display: flex;
       flex-direction: column;
       justify-content: center;
       pointer-events: auto;	
       filter: drop-shadow(0px 0px 20px white);
     }
-    
-    .skyColor
-    {
-      filter: hue-rotate(240deg) saturate(100%) brightness(100%) drop-shadow(0px 0px 20px white);
-    }
-    
-    .baseColor
-    {
-      filter: hue-rotate(24deg) saturate(68%) brightness(100%) drop-shadow(0px 0px 20px white);
-    }
-    
-    .grayColor
-    {
-      filter: hue-rotate(0deg) saturate(0%) brightness(100%) drop-shadow(0px 0px 20px white);
-    }
-    
     </style>
+
+  
 </head>
 
 <body>
-
   <div class="mainUI" id="uiDiv" oncontextmenu="return false;">
-
-    <!-- top-left -->
-    <div class="regionUI skyColor" style="top: 10px; left: 10px;" oncontextmenu="return false;">
-    </div>
-  
-    <!-- top-right -->
-    <div class="regionUI" style="top: 10px; right: 10px;">
-    </div>
-  
-    <!-- bottom-left -->
-    <div class="regionUI" style="bottom: 10px; left: 10px;">
-      <div class="buttonUI" style="width: 128px;  opacity:0.80;">
-        <img src="images/joystick-base.png"/>
-        <div id="stick1" style="position: absolute; left:32px; top:32px;">
-        <img src="images/joystick-red.png"/>		
-        </div>
+    <div class="regionUI">
+      <div class="buttonUI">
+          <img src="images/enter.png"  id = "buttonEnter"/>
       </div>
     </div>
-  
-    <!-- bottom-right -->
-    <div class="regionUI" style="bottom: 10px; right: 10px;">
-      <div class="buttonUI" style="width: 128px; opacity:0.80;">
-        <img src="images/joystick-base.png"/>
-        <div id="stick2" style="position: absolute; left:32px; top:32px;">
-        <img src="images/joystick-blue.png"/>		
-        </div>
-      </div>
-    </div>
-  
   </div>
-  
+
   <script>
-  
-    // need to run javascript code after a-scene entities and components are loaded
-    AFRAME.registerComponent('screen-controls', 
+
+    function randomNormal(min, max)
     {
-      init: function () 
+      let rand = 0;
+      for (let n = 0; n < 6; n++)
+        rand += Math.random();
+      return min + (max - min) * (rand / 6);
+    }
+    
+    function randomUniform(min, max)
+    {
+      return min + (max - min) * Math.random();
+    }
+    
+    AFRAME.registerComponent('spawner', 
+    {
+      init: function()
       {
-          this.component = document.getElementById("camera").components["extended-wasd-controls"];
-          this.joystick1 = new Joystick("stick1", 64, 8);
-          this.joystick2 = new Joystick("stick2", 64, 8);
-        },
-  
-        tick: function(time, deltaTime)
+        this.sceneElement = document.querySelector('a-scene');
+      },
+    
+      tick: function(time, deltaTime) // deltaTime: milliseconds
+      {
+        let deltaSeconds = deltaTime/1000;
+        let eventFrequency = 0.75;
+    
+        if ( Math.random() < eventFrequency * deltaSeconds )
         {
-          // console.log( joystick1.value )
-          // console.log( this.component.movePercent )
-          this.component.movePercent.x   =  this.joystick1.value.x;
-          this.component.movePercent.z   = -this.joystick1.value.y;
-          this.component.rotatePercent.x = -this.joystick2.value.y;
-          this.component.rotatePercent.y = -this.joystick2.value.x;
-          
-          
+          console.log( "Firework!" );
+          let angle = THREE.Math.degToRad(270);
+          let angleSpread = THREE.Math.degToRad(90);
+          let angleRadians = angle + randomNormal(-angleSpread, angleSpread); 
+          let radius = 9;
+          let x = radius * Math.cos(angleRadians);
+          let y = 0;
+          let z = radius * Math.sin(angleRadians);
+    
+          let firework = document.createElement("a-entity");
+          firework.setAttribute("firework", "");
+          firework.setAttribute("position", {"x":x, "y":y, "z":z} );
+    
+          // random flight parameters
+          let maxHeight = randomNormal(4, 8);
+          firework.setAttribute("firework", "maxHeight", maxHeight );
+          let riseTime = randomNormal(2, 3);
+          firework.setAttribute("firework", "riseTime", riseTime );
+          this.sceneElement.appendChild( firework );
+    
+          // chance of multi-firework
+          // 0.10 = 1/10 double, 1/100 triple, 1/1000 quadruple, etc.
+          // 0.20 =  1/5 double,  1/25 triple,  1/125 quadruple, etc.
+          while ( Math.random() < 0.15 )
+          {
+            let fireworkExtra = document.createElement("a-entity");
+            fireworkExtra.setAttribute("firework", "");
+            // synchronize position, height, time to explosion
+            fireworkExtra.setAttribute("position", {"x":x, "y":y, "z":z} );
+            fireworkExtra.setAttribute("firework", "maxHeight", maxHeight );
+            fireworkExtra.setAttribute("firework", "riseTime", riseTime );
+            this.sceneElement.appendChild( fireworkExtra );
+          }
         }
+      }
     });
+    
+    AFRAME.registerComponent('firework', 
+    {
+      schema: 
+      {
+        color:  {type: 'string', default: ""},
+        maxHeight: {type: 'number', default: 4.5},
+        riseTime: {type: 'number', default: 2.5}	// time to reach maxHeight
+      },
+    
+      randomColor: function()
+      {
+        let colorList = ["red", "orange", "gold", "green", "cyan", "#0088FF", "violet"];
+        let colorIndex = Math.floor( colorList.length * Math.random() );
+        return colorList[colorIndex];
+      },
+    
+      init: function()
+      {	
+        // set random color if none already set
+        if ( this.data.color == "" )
+          this.data.color = this.randomColor();
+
+          let text = document.createElement("a-text");
+          text.setAttribute("value", "Firework!");
+          text.setAttribute("color", this.data.color);
+          text.setAttribute("position", "0 2 0"); // Adjust position as needed
+    
+        // set up movement animation
+        let p = this.el.object3D.position;
+        this.el.setAttribute("animation__position", "property", "position");
+        this.el.setAttribute("animation__position", "from", {"x":p.x, "y":p.y, "z":p.z});
+        this.el.setAttribute("animation__position", "to", {"x":p.x, "y":p.y + this.data.maxHeight, "z":p.z});
+        this.el.setAttribute("animation__position", "dur", this.data.riseTime * 1000);
+        this.el.setAttribute("animation__position", "easing", "easeOutQuad");  // fast at start, then slower
+        
+        // trail effect ----------------------------------------------------------
+    
+            this.particleTrail = document.createElement("a-image");
+            this.particleTrail.setAttribute("position", "0 -0.1 0");
+            this.particleTrail.setAttribute("width", "0.5");
+            this.particleTrail.setAttribute("height", "0.5");
+            this.particleTrail.setAttribute("scale", "1 1 1");
+            
+            this.particleTrail.setAttribute("src", "#fireballSheet");
+    
+            this.particleTrail.setAttribute("spritesheet-animation", "rows: 1; columns: 8; frameDuration: 0.08; loop: true;");
+    
+        this.particleTrail.setAttribute("material", "blending: additive; transparent: true; opacity: 1;");
+        
+        
+            this.particleTrail.setAttribute("animation__fade", "property", "material.opacity");
+        this.particleTrail.setAttribute("animation__fade", "from", 1.0);
+        this.particleTrail.setAttribute("animation__fade", "to", 0.2);
+        this.particleTrail.setAttribute("animation__fade", "dur", this.data.riseTime * 1000);
+        this.particleTrail.setAttribute("animation__fade", "easing", "easeOutQuad");  // slow at start, then fast
+        
+    
+            this.particleTrail.setAttribute("animation__shrink", "property", "scale");
+        this.particleTrail.setAttribute("animation__shrink", "from", "1 1 1");
+        this.particleTrail.setAttribute("animation__shrink", "to", "0.25 0.25 0.25");
+        this.particleTrail.setAttribute("animation__shrink", "dur", this.data.riseTime * 1000);
+        this.particleTrail.setAttribute("animation__shrink", "easing", "easeOutQuad");  // slow at start, then fast
+    
+        this.el.appendChild(this.particleTrail);
+    
+        // burst effect ----------------------------------------------------------
+    
+            this.particleBurst = document.createElement("a-entity");
+            this.particleBurst.setAttribute("spe-particles", "");
+    
+        this.particleBurst.setAttribute("spe-particles", "texture", "images/sparkle.png");
+        this.particleBurst.setAttribute("spe-particles", "blending", "additive");
+        this.particleBurst.setAttribute("spe-particles", "distribution", "sphere");
+        this.particleBurst.setAttribute("spe-particles", "radius", 0.01);
+        
+        // particles both shrink and fade during last moments
+        this.particleBurst.setAttribute("spe-particles", "opacity", [1, 1, 1, 0]);
+        // this.particleBurst.setAttribute("spe-particles", "size", [1, 1, 1, 0]);
+        
+        let particleCount = Math.floor( randomUniform(100, 999) );
+        this.particleBurst.setAttribute("spe-particles", "particleCount", particleCount);
+    
+        // change of particle burst vs. particle stream
+        if ( Math.random() < 0.80 )
+          this.particleBurst.setAttribute("spe-particles", "activeMultiplier", particleCount);
+        else
+          this.particleBurst.setAttribute("spe-particles", "activeMultiplier", particleCount/128);
+        
+        // note: when distribution = 'sphere', only first component of velocity vectors are used
+        let baseVelocity = randomUniform(1, 2);
+        this.particleBurst.setAttribute("spe-particles", "velocity", {"x":baseVelocity, "y":0, "z":0});
+        this.particleBurst.setAttribute("spe-particles", "velocitySpread", {"x":0.5, "y":0, "z":0});
+        this.particleBurst.setAttribute("spe-particles", "drag", 1.00);
+        this.particleBurst.setAttribute("spe-particles", "randomizeVelocity", true);
+        
+        // add a bit of gravity
+        this.particleBurst.setAttribute("spe-particles", "accelerationDistribution", "box");
+        this.particleBurst.setAttribute("spe-particles", "acceleration", {"x":0, "y":-0.2, "z":0});
+        this.particleBurst.setAttribute("spe-particles", "accelerationSpread", {"x":0, "y":0.2, "z":0});
+        
+        // how long will particles last?
+            this.burstDuration = randomUniform(1.0, 3.0);
+            this.particleBurst.setAttribute("spe-particles", "maxAge", this.burstDuration);
+            this.particleBurst.setAttribute("spe-particles", "maxAgeSpread", this.burstDuration/4);
+            // duration = maximum amount of time to emit particles;
+            //        	  should be less than smallest max age to prevent second burst
+        this.particleBurst.setAttribute("spe-particles", "duration", 0.5);
+    
+        // default: steady color
+        let colorArray = ["white", this.data.color, this.data.color, this.data.color];
+        // random chance of color shifting
+        if ( Math.random() < 0.25 )
+        {
+          let color2 = this.data.color;
+          // make sure second color is different from first
+          while (color2 == this.data.color)
+          {
+            color2 = this.randomColor();
+          }
+          colorArray = ["white", this.data.color, color2, color2];
+        }
+            this.particleBurst.setAttribute("spe-particles", "color", colorArray);
+    
+            // disable burst effect for now;
+            //   will be enabled (in tick method) after reaching max height
+        this.particleBurst.setAttribute("spe-particles", "enabled", false);
+    
+          this.el.appendChild(this.particleBurst);
+    
+        this.elapsedTime = 0;
+        this.burstStart = false;
+    
+        // audio effects
+        this.launchSound = document.getElementById("launchSound");
+        this.launchSound.components.sound.playSound();
+        if ( this.burstDuration < 1.6 || particleCount < 300 )
+          this.burstSound = document.getElementById("burst1Sound");
+        else if ( this.burstDuration < 2.4 )
+          this.burstSound = document.getElementById("burst2Sound");
+        else // this.burstDuration < 3.0
+          this.burstSound = document.getElementById("burst3Sound");
+      },
+      
+      tick: function(time, deltaTime)
+      {
+        this.elapsedTime += deltaTime/1000;
+    
+        // firework has reached max height, start burst effect
+        if (this.elapsedTime > this.data.riseTime && this.burstStart == false)
+        {
+          this.burstStart = true;
+          this.particleBurst.setAttribute("spe-particles", "enabled", true);
+    
+          this.el.removeChild( this.particleTrail );
+    
+          this.burstSound.components.sound.playSound();
+        }
+    
+        // firework finished; remove self from scene
+        //  need to take into account particle age variation (1.25 factor)
+        if (this.elapsedTime > this.data.riseTime + this.burstDuration * 1.25)
+        {
+          let element = this.el;
+              element.parentNode.removeChild(element);
+        }
+      }
+    });
+    
+    // runs when user clicks button
+    AFRAME.registerComponent('start', 
+    {
+      init: function()
+      {
+        // block pointer events until buttonEnter is clicked
+        let uiDiv = document.getElementById("uiDiv");
+        uiDiv.style["pointer-events"] = "auto";
+    
+        // set up background blocker
+        uiDiv.style["background-color"] = "rgba(0, 0, 0, 0.75)";
+    
+        // indicate clickable with hand cursor (desktop)
+        let buttonEnter = document.getElementById("buttonEnter");
+        buttonEnter.style.cursor = "pointer";
+    
+        // fade-in functionality
+        let fadeIn = function()
+        {
+          // allow point events again
+          uiDiv.style["pointer-events"] = "none";
+    
+          // sounds can only be triggered after a mouse interaction
+          let soundPlayer = document.querySelector("#ambientSound");
+          soundPlayer.components.sound.playSound();
+    
+          // remove startButton
+          buttonEnter.parentNode.remove(buttonEnter);
+    
+          // fade out uiDiv background
+          uiDiv.style["background-color"] = "rgba(0, 0, 0, 0.0)";
+            uiDiv.style["transition"] = "background-color 1000ms linear";
+    
+            // activate the spawner
+          let camera = document.querySelector("#camera");
+          camera.setAttribute("spawner", "");
+        }
+    
+        // activate for desktop/touchscreen
+        buttonEnter.addEventListener('click', fadeIn); // Use 'click' event instead of 'mousedown' and 'touchstart'
+        buttonEnter.addEventListener('touchstart', fadeIn);
+        buttonEnter.addEventListener('mousedown',  fadeIn);
+      }
+    });
+    </script>
+    
   
-  
-  </script>
-  
-  <a-scene stats>
+  <a-scene  start>
+
+          
+          
+          
+
     <a-assets>
       <a-mixin
         id="box"
@@ -135,14 +347,14 @@
       ></a-mixin>
       <a-mixin
         id="circle-cfi"
-        geometry="primitive: circle; radius: .5;
+        geometry="primitive: circle; height: 1; radius: 0.5;
                            segments: 100; thetaStart: 0; thetaLength: 360";
         material="src: url(images/cfi.jpg)"
       ></a-mixin>
 
       <a-mixin
         id="circle-nirmaan"
-        geometry="primitive: circle; radius: .5;
+        geometry="primitive: circle; height: 1; radius: .5; 
                            segments: 100; thetaStart: 0; thetaLength: 360";
         material="src: url(images/nirmaan.jpeg)"
       ></a-mixin>
@@ -202,21 +414,33 @@
       <img id="sky" src= "images/stars.jpg" />
       <img id ="b" src = "images/logo1.png"/>
       <img id = "birithik" src  = "images/birithik_nobg.png"/>
-      
 
-
+      <img id="fireball" src="images/fireball.png"/>	
+      <img id="fireballSheet" src="images/fireball-up.png"/>	
+      <audio id="ambient" src="audio/ambient-night.mp3" preload="auto"></audio>
+      <audio id="launch" src="audio/rocket-launch.wav" preload="auto"></audio>
+      <audio id="burst1" src="audio/firework-burst-short.wav" preload="auto"></audio>
+      <audio id="burst2" src="audio/firework-burst-medium.wav" preload="auto"></audio>
+      <audio id="burst3" src="audio/firework-burst-long.wav" preload="auto"></audio>
 
     </a-assets>
 
-    <a-sky src="images/stars.jpg"></a-sky>
+    <a-entity id="camera" camera look-controls position="0 1.6 0" ></a-entity>
+
+
+    <a-entity id="ambientSound" sound="src: #ambient; loop: true;"></a-entity>
+    <a-entity id="launchSound" sound="src: #launch; loop: false; poolSize: 4; volume: 0.025;"></a-entity>
+    <a-entity id="burst1Sound" sound="src: #burst1; loop: false; poolSize: 4; volume: 0.025;"></a-entity>
+    <a-entity id="burst2Sound" sound="src: #burst2; loop: false; poolSize: 4; volume: 0.025;"></a-entity>
+    <a-entity id="burst3Sound" sound="src: #burst3; loop: false; poolSize: 4; volume: 0.025;"></a-entity>
+
 
     <!-- <a-sound src="Interstellar Official Soundtrack  Cornfield Chase  Hans Zimmer  WaterTower.mp3" loop autoplay></a-sound> -->
     
-    <a-entity id="sound"
-          position="0 0 0" sound="src: url(background_music.mp3); autoplay: true; loop: true; "></a-entity>
+    <!-- <a-entity id="sound"
+          position="0 0 0" sound="src: url(background_music.mp3); autoplay: true; loop: true; "></a-entity> -->
 
-    <a-camera position="0 10 0"></a-camera>
-
+    <a-sky src="images/stars.jpg"></a-sky>
     <a-entity light="type: ambient; color: #444"></a-entity>
     <a-entity
       light="type: directional; color: #EEE"
@@ -237,7 +461,7 @@
       position="0 .2 0"
     ></a-entity>
 
-    <a-entity position = "0 1 0">
+    <a-entity position = "0 0.3 0">
       <a-image src="#b" width="3" height="3" rotation="90 -90"></a-image>
 
   </a-entity>
@@ -245,29 +469,6 @@
     <a-entity position="0 1 -5">
       <a-image src="#birithik" width="3" height="3"></a-image>
     </a-entity>
-
-    <!-- <a-plane src rotation="-90 0 0" width="10" height="10"></a-plane> -->
-
-    <!-- <a-entity position="-2.5 0 1">
-      <a-entity mixin="column">
-        <a-entity mixin="column-light"></a-entity>
-        <a-entity
-          mixin="object-on-column color box spin"
-          animation__spin="to: 360 360 0"
-        ></a-entity>
-        <a-entity
-          mixin="object-on-column color box spin"
-          position=".18 1.2 .1"
-          animation__spin="to: 360 360 0"
-        ></a-entity>
-        <a-entity
-          mixin="object-on-column color box spin"
-          position="-.18 1.2 -.2"
-          animation__spin="to: 360 360 0"
-        ></a-entity>
-      </a-entity>
-      <a-entity mixin="column-bottom"></a-entity>
-    </a-entity> -->
 
     <a-entity position="4.33 0 2.5">
       <a-entity mixin="column">
