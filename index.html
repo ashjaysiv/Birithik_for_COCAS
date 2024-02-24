@@ -140,10 +140,18 @@
         if ( this.data.color == "" )
           this.data.color = this.randomColor();
 
+          let words = ['CULTIVATE', 'CONFIGURE', 'CURATE', 'COLLABORATE', 'CELEBRATE'];
+
+          // Select a random word from the array
+          let randomWord = words[Math.floor(Math.random() * words.length)];
+
           let text = document.createElement("a-text");
-          text.setAttribute("value", "Firework!");
+          text.setAttribute("value", randomWord);
           text.setAttribute("color", this.data.color);
-          text.setAttribute("position", "0 2 0"); // Adjust position as needed
+          text.setAttribute("position", "0 8 -5"); // Adjust position as needed
+          text.setAttribute("scale", "3 3 3");
+
+          this.el.appendChild(text);
     
         // set up movement animation
         let p = this.el.object3D.position;
@@ -435,10 +443,10 @@
     <a-entity id="burst3Sound" sound="src: #burst3; loop: false; poolSize: 4; volume: 0.025;"></a-entity>
 
 
-    <!-- <a-sound src="Interstellar Official Soundtrack  Cornfield Chase  Hans Zimmer  WaterTower.mp3" loop autoplay></a-sound> -->
+    <a-sound src="Interstellar Official Soundtrack  Cornfield Chase  Hans Zimmer  WaterTower.mp3" loop autoplay></a-sound>
     
-    <!-- <a-entity id="sound"
-          position="0 0 0" sound="src: url(background_music.mp3); autoplay: true; loop: true; "></a-entity> -->
+    <a-entity id="sound"
+          position="0 0 0" sound="src: url(audio/harrypottter.mpeg); autoplay: true; loop: true; "></a-entity>
 
     <a-sky src="images/stars.jpg"></a-sky>
     <a-entity light="type: ambient; color: #444"></a-entity>
